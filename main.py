@@ -1,24 +1,24 @@
 import sys
+import database
 from PyQt5 import QtWidgets
-from custom_main_window import MyMainWindow
 from ui import Ui_MainWindow
-from ui_function_initialize import *
+from ui_function import *
+
 
 def initialize_ui_function(ui):
     combo_box_Initialize(ui)
     connect_ui_with_event(ui)
 
-def connect_ui_with_event(ui):
-    ui.reloadButton.clicked.connect(lambda : reload_camera_list_event(ui))
-    ui.selectCameraButton.clicked.connect(lambda : select_camera_evenet(ui))
 
-def combo_box_Initialize(ui):
-    reload_camera_list_event(ui);
+def connect_ui_with_event(ui):
+    ui.edgeSearchButton.clicked.connect(lambda: search_event(ui, 'edge'))
+    ui.childSearchButton.clicked.connect(lambda: search_event(ui, 'child'))
+
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
     ui = Ui_MainWindow()
-    MainWindow = MyMainWindow(ui, lambda : camera_handler.update_camera_function(ui))
+    MainWindow = QtWidgets.QMainWindow()
     ui.setupUi(MainWindow)
     '''
     USER SETUP BEGIN

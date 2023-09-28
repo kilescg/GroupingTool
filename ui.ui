@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1260</width>
-    <height>705</height>
+    <height>707</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,7 +18,8 @@
     <item>
      <widget class="QGroupBox" name="groupBox">
       <property name="styleSheet">
-       <string notr="true">font-size: 10pt</string>
+       <string notr="true">font-family: Arial, Helvetica, sans-serif;
+font-size: 12pt;</string>
       </property>
       <property name="title">
        <string>Console</string>
@@ -27,86 +28,11 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_5">
          <item>
-          <layout class="QVBoxLayout" name="verticalLayout">
-           <item>
-            <widget class="QLabel" name="label_7">
-             <property name="text">
-              <string>Camera Live Preview</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <layout class="QHBoxLayout" name="horizontalLayout_2">
-             <item>
-              <widget class="QComboBox" name="cameraListComboBox">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="reloadButton">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="text">
-                <string>Reload</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="selectCameraButton">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="text">
-                <string>Select</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item>
-            <widget class="QLabel" name="liveCameraLabel">
-             <property name="text">
-              <string/>
-             </property>
-             <property name="pixmap">
-              <pixmap>Img/img_place_holder.jpg</pixmap>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <widget class="Line" name="line_2">
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
           <layout class="QVBoxLayout" name="verticalLayout_2">
-           <item alignment="Qt::AlignHCenter">
-            <widget class="QLabel" name="label_5">
-             <property name="text">
-              <string>Scan Status</string>
-             </property>
-            </widget>
-           </item>
            <item>
-            <widget class="QLabel" name="label">
+            <widget class="QLabel" name="edgeLabel">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+              <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
@@ -120,21 +46,45 @@
              <property name="text">
               <string>Edge Mac Address</string>
              </property>
-            </widget>
-           </item>
-           <item alignment="Qt::AlignHCenter">
-            <widget class="QLabel" name="label_4">
-             <property name="text">
-              <string>None</string>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton_2">
-             <property name="text">
-              <string>Scan</string>
-             </property>
-            </widget>
+            <layout class="QGridLayout" name="gridLayout_2">
+             <item row="1" column="0">
+              <widget class="QComboBox" name="edgeComboBox"/>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLineEdit" name="edgeSearchLineEdit">
+               <property name="text">
+                <string>keyword</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QPushButton" name="edgeSearchButton">
+               <property name="text">
+                <string>Search</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QPushButton" name="edgeScanButton">
+               <property name="text">
+                <string>Scan QR</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="edgeNote">
+               <property name="text">
+                <string>Notes :</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
            <item>
             <widget class="Line" name="line">
@@ -144,58 +94,108 @@
             </widget>
            </item>
            <item alignment="Qt::AlignHCenter">
-            <widget class="QLabel" name="label_2">
+            <widget class="QLabel" name="childLabel">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="text">
               <string>Child Mac Address</string>
              </property>
             </widget>
            </item>
-           <item alignment="Qt::AlignHCenter">
-            <widget class="QLabel" name="label_11">
-             <property name="text">
-              <string>None</string>
-             </property>
-            </widget>
+           <item>
+            <layout class="QGridLayout" name="gridLayout_3">
+             <item row="0" column="0">
+              <widget class="QLineEdit" name="childSearchLineEdit">
+               <property name="placeholderText">
+                <string>keyword</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QPushButton" name="childScanButton">
+               <property name="text">
+                <string>Scan QR</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QComboBox" name="childComboBox"/>
+             </item>
+             <item row="0" column="1">
+              <widget class="QPushButton" name="childSearchButton">
+               <property name="text">
+                <string>Search</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton_3">
-             <property name="text">
-              <string>Scan</string>
-             </property>
-            </widget>
+            <layout class="QVBoxLayout" name="verticalLayout_3">
+             <item>
+              <widget class="QLabel" name="macPrefixLebel">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="text">
+                <string>Mac Address Prefix</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="macPrefixLineEdit_1">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="placeholderText">
+                <string>xx_xx</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="eviceTypeLabel">
+               <property name="text">
+                <string>Device Type</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="deviceTypeComboBox"/>
+             </item>
+             <item>
+              <widget class="QLabel" name="controllerTypeLabel">
+               <property name="text">
+                <string>Controller Type</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="controllerTypeComboBox"/>
+             </item>
+             <item>
+              <widget class="QLabel" name="locationLabel">
+               <property name="text">
+                <string>Location</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QComboBox" name="locationComboBox"/>
+             </item>
+            </layout>
            </item>
            <item>
-            <widget class="QLabel" name="label_8">
-             <property name="text">
-              <string>Device ID</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QComboBox" name="comboBox"/>
-           </item>
-           <item>
-            <widget class="QLabel" name="label_9">
-             <property name="text">
-              <string>Device Name</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QComboBox" name="comboBox_2"/>
-           </item>
-           <item>
-            <widget class="QLabel" name="label_10">
-             <property name="text">
-              <string>Location</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QComboBox" name="comboBox_3"/>
-           </item>
-           <item>
-            <widget class="QPushButton" name="pushButton">
+            <widget class="QPushButton" name="addDeviceButton">
              <property name="text">
               <string>Add Device</string>
              </property>
@@ -206,7 +206,7 @@
         </layout>
        </item>
        <item>
-        <widget class="Line" name="line_3">
+        <widget class="Line" name="line_2">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
@@ -215,28 +215,32 @@
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_5">
          <item>
-          <widget class="QLabel" name="label_3">
+          <widget class="QLabel" name="groupListLabel">
            <property name="text">
             <string>Group List</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QTableView" name="tableView"/>
+          <widget class="QTableView" name="groupListTableView"/>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_4">
-           <property name="text">
-            <string>Add Group</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_6">
-           <property name="text">
-            <string>return status : None</string>
-           </property>
-          </widget>
+          <layout class="QHBoxLayout" name="horizontalLayout_4">
+           <item>
+            <widget class="QPushButton" name="AddGroupButton">
+             <property name="text">
+              <string>Add Group</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton">
+             <property name="text">
+              <string>Clear Group</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
         </layout>
        </item>
