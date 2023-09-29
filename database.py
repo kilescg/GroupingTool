@@ -2,6 +2,7 @@ import sqlite3
 import json
 from utils import get_date_time
 from sqlite3 import Error
+from essential_generators import DocumentGenerator
 
 
 class SDE_SQLLite():
@@ -82,12 +83,19 @@ class SDE_SQLLite():
         cur.execute(sql, device_incoming)
         self.conn.commit()
         return cur.lastrowid
-    
+
     # super mock lol
     def insert_edge_device(self, device_incoming):
-        sql = ''' INSERT INTO edge_device(no,edge_id) VALUES(?,?)'''
+        sql = ''' INSERT INTO edge_device(no,edge_id,note_id) VALUES(?,?,?)'''
         cur = self.conn.cursor()
         cur.execute(sql, device_incoming)
+        self.conn.commit()
+        return cur.lastrowid
+
+    def insert_note(self, note):
+        sql = ''' INSERT INTO note(note_id, note_detail) VALUES(?,?)'''
+        cur = self.conn.cursor()
+        cur.execute(sql, note)
         self.conn.commit()
         return cur.lastrowid
 
@@ -143,6 +151,28 @@ class SDE_SQLLite():
 
         return results
 
+    def get_note_details_by_edge_id(self, edge_id):
+        try:
+            # Connect to the SQLite database
+            cursor = self.conn.cursor()
+
+            # Execute the SQL query
+            cursor.execute("""
+                SELECT n.note_detail
+                FROM edge_device AS e
+                JOIN note AS n ON e.note_id = n.note_id
+                WHERE e.edge_id = ?
+            """, (edge_id,))
+
+            # Fetch all the results
+            note_details = cursor.fetchall()
+
+            return note_details
+
+        except sqlite3.Error as e:
+            print("SQLite error:", e)
+            return None
+
 
 if __name__ == '__main__':
     pass
@@ -178,12 +208,26 @@ if __name__ == '__main__':
             print(num)
     '''
 
+    '''
     # insert dummy edge to database
+    generate = DocumentGenerator()
     db = SDE_SQLLite("database/DB_sdeautodeploy.db")
     with open('configuration.json') as f:
         data = json.load(f)
         for num in range(999):
             dt = get_date_time()
-            template_data = (f'mac_{num}', 'fame', 'fame', 'fame', 'fame')
-            db.insert_edge_device(template_data)
-            print(num)  
+            note_txt = generate.paragraph(min_sentences=13, max_sentences=25)
+            template_data = (num, note_txt)
+            db.insert_note(template_data)
+            print(num)
+    '''
+
+    '''
+    # incser dummy notes to database
+    db = SDE_SQLLite("database/DB_sdeautodeploy.db")
+    for num in range(999):
+        dt = get_date_time()
+        template_data = (num, f"fame_{num}", num)
+        db.insert_edge_device(template_data)
+        print(num)
+    '''

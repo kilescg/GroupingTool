@@ -14,6 +14,9 @@ def connect_ui_with_event(ui):
     ui.edgeSearchButton.clicked.connect(lambda: search_event(ui, 'edge'))
     ui.childSearchButton.clicked.connect(lambda: search_event(ui, 'child'))
 
+    ui.edgeComboBox.currentTextChanged.connect(
+        lambda _: edge_combo_changed_event(ui))
+
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
