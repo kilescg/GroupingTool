@@ -1,20 +1,34 @@
 from database import SDE_SQLLite
-import os
-import json
+from PyQt5.QtWidgets import QMessageBox
+from utils import *
 
 
 def add_device_event(ui):
-    json_file = open("configuration.json")
-    combo_box_json = json.load(json_file)
-    child_mac_id = ui.childMacResult.text()
+    headers = ["edge mac id", "child mac id", "device type",
+               "controller type", "location", "datetime"]
+    edge_mac_id = ui.edgeComboBox.currentText()
+    mac_prefix = ui.macPrefixLineEdit.text()
+    child_mac_id = mac_prefix + "_" + ui.childComboBox.currentText()
     device_type = ui.deviceTypeComboBox.currentText()
-    device_name = ui.deviceNameComboBox.currentText()
-    location = ui.locationComboBox.currentText()
     controller_type = ui.controllerTypeComboBox.currentText()
-    device_type_index = combo_box_json["device_name_to_index"][device_name]
-    child_mac_id = f"{device_type_index}_{child_mac_id}"
-
-    json_file.close()
+    location = ui.locationComboBox.currentText()
+    datetime = get_date_time()
+    data = get_data_from_table_view(ui.groupListTableView)
+    new_device = [edge_mac_id, child_mac_id, device_type,
+                  controller_type, location, datetime]
+    if all(item is not None and item not in ('', []) for item in new_device) and (mac_prefix is not None and mac_prefix not in ('', [])):
+        if data == None:
+            data = []
+        data.append(new_device)
+        populate_table(ui.groupListTableView, headers, data)
+    else:
+        QMessageBox.warning(
+            None,
+            "Warning",
+            "All data must be selected!",
+            QMessageBox.Ok,
+        )
+        return
 
 
 def search_event(ui, item_type):
@@ -34,7 +48,9 @@ def search_event(ui, item_type):
 
 
 def clear_group_event(ui):
-    pass
+    headers = ["edge mac id", "child mac id", "device type",
+               "controller type", "location", "datetime"]
+    populate_table(ui.groupListTableView, headers, [])
 
 
 def combo_box_Initialize(ui):

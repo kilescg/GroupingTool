@@ -171,7 +171,7 @@ font-size: 12pt;</string>
               </widget>
              </item>
              <item>
-              <widget class="QLineEdit" name="macPrefixLineEdit_1">
+              <widget class="QLineEdit" name="macPrefixLineEdit">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                  <horstretch>0</horstretch>
@@ -243,19 +243,33 @@ font-size: 12pt;</string>
           </widget>
          </item>
          <item>
-          <widget class="QTableView" name="groupListTableView"/>
+          <widget class="QTableView" name="groupListTableView">
+           <property name="selectionMode">
+            <enum>QAbstractItemView::MultiSelection</enum>
+           </property>
+           <property name="selectionBehavior">
+            <enum>QAbstractItemView::SelectRows</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="addGroupButton">
+           <property name="text">
+            <string>Add Group</string>
+           </property>
+          </widget>
          </item>
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout_4">
            <item>
-            <widget class="QPushButton" name="AddGroupButton">
+            <widget class="QPushButton" name="deleteRowButton">
              <property name="text">
-              <string>Add Group</string>
+              <string>Delete Selected Row</string>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="pushButton">
+            <widget class="QPushButton" name="clearGroupButton">
              <property name="text">
               <string>Clear Group</string>
              </property>

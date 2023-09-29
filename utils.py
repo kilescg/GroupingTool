@@ -1,37 +1,71 @@
-import csv
-import os
-from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
+from PyQt5.QtWidgets import QMessageBox
 from datetime import datetime
 
 
-def PopulateTableView(tableView, columnHeaders, data):
-    # Create a model and set it for the table view
+def populate_table(table_view, headers, data):
     model = QStandardItemModel()
-    tableView.setModel(model)
+    model.setHorizontalHeaderLabels(headers)
 
-    # Set column headers
-    model.setHorizontalHeaderLabels(columnHeaders)
+    for row_data in data:
+        row_items = [QStandardItem(str(cell)) for cell in row_data]
+        model.appendRow(row_items)
 
-    # Populate the model with data
-    for row in data:
-        item_list = [QStandardItem(str(item)) for item in row]
-        model.appendRow(item_list)
-
-    tableView.resizeColumnsToContents()
+    table_view.setModel(model)
 
 
-def AddDataToTableView(tableView, newData):
-    # Get the current model
-    model = tableView.model()
+def get_data_from_table_view(table_view):
+    model = table_view.model()
+    if not model:
+        return []
 
-    # Check if the model exists
-    if model is not None:
-        # Append the new data to the model
-        item_list = [QStandardItem(str(item)) for item in newData]
-        model.appendRow(item_list)
+    data = []
+    for row in range(model.rowCount()):
+        row_data = []
+        for column in range(model.columnCount()):
+            item = model.item(row, column)
+            if item is not None:
+                row_data.append(item.text())
+            else:
+                row_data.append("")  # Handle empty cells
 
-    tableView.resizeColumnsToContents()
+        data.append(row_data)
+
+    return data
+
+
+def delete_selected_row(table_view):
+    # Get the currently selected row(s)
+    try:
+        selected_indexes = table_view.selectionModel().selectedRows()
+
+        if not selected_indexes:
+            QMessageBox.warning(
+                None,
+                "Warning",
+                "No row selected. Please select a row to delete.",
+                QMessageBox.Ok,
+            )
+            return
+
+        # Sort the selected indexes in reverse order to avoid index shifting
+        selected_indexes.sort(reverse=True)
+
+        # Remove the selected rows from the model
+        model = table_view.model()
+        for index in selected_indexes:
+            model.removeRow(index.row())
+
+        # Clear the selection
+        table_view.clearSelection()
+    except:
+        QMessageBox.warning(
+            None,
+            "Warning",
+            "No row selected. Please select a row to delete.",
+            QMessageBox.Ok,
+        )
+        return
 
 
 def get_date_time():
