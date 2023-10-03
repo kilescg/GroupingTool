@@ -1,56 +1,48 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTableView, QAbstractItemView, QPushButton, QVBoxLayout, QWidget, QMessageBox
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QStandardItemModel, QStandardItem
+from PyQt5.QtCore import Qt, QObject, pyqtSignal
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTextEdit
+import threading
 
 
-def delete_selected_row(table_view):
-    selected_indexes = table_view.selectionModel().selectedRows()
+class BarcodeScanner(QObject):
+    barcodeScanned = pyqtSignal(str)
 
-    if not selected_indexes:
-        QMessageBox.warning(
-            None,
-            "Warning",
-            "No row selected. Please select a row to delete.",
-            QMessageBox.Ok,
-        )
-        return
+    def __init__(self):
+        super().__init__()
 
-    selected_indexes.sort(reverse=True)
-
-    model = table_view.model()
-    for index in selected_indexes:
-        model.removeRow(index.row())
-
-    table_view.clearSelection()
+    def run(self):
+        while True:
+            barcode_data = input("Scan a barcode (Q to quit): ")
+            if barcode_data.upper() == 'Q':
+                break
+            self.barcodeScanned.emit(barcode_data)
 
 
-app = QApplication(sys.argv)
-window = QMainWindow()
-central_widget = QWidget()
-window.setCentralWidget(central_widget)
+class MyWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
 
-layout = QVBoxLayout(central_widget)
+        self.initUI()
 
-model = QStandardItemModel()
-model.setColumnCount(3)
-model.setHorizontalHeaderLabels(["Name", "Age", "Country"])
+    def initUI(self):
+        self.setGeometry(100, 100, 400, 300)
+        self.setWindowTitle('Barcode Scanner Input')
 
-for name, age, country in [("Alice", 25, "USA"), ("Bob", 30, "Canada"), ("Charlie", 22, "UK")]:
-    row = [QStandardItem(name), QStandardItem(
-        str(age)), QStandardItem(country)]
-    model.appendRow(row)
+        self.text_edit = QTextEdit(self)
+        self.text_edit.setGeometry(10, 10, 380, 280)
 
-table_view = QTableView()
-table_view.setModel(model)
-table_view.setSelectionBehavior(QAbstractItemView.SelectRows)
-table_view.setSelectionMode(QAbstractItemView.MultiSelection)
+        self.barcode_scanner = BarcodeScanner()
+        self.barcode_scanner.barcodeScanned.connect(self.on_barcode_scanned)
+        self.barcode_scanner_thread = threading.Thread(
+            target=self.barcode_scanner.run)
+        self.barcode_scanner_thread.start()
 
-layout.addWidget(table_view)
+    def on_barcode_scanned(self, barcode_data):
+        self.text_edit.append(f'Barcode Scanned: {barcode_data}')
 
-delete_button = QPushButton("Delete Selected Row(s)")
-delete_button.clicked.connect(lambda: delete_selected_row(table_view))
-layout.addWidget(delete_button)
 
-window.show()
-sys.exit(app.exec_())
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    window = MyWindow()
+    window.show()
+    sys.exit(app.exec_())

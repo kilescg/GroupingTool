@@ -53,9 +53,6 @@ font-size: 12pt;</string>
            </item>
            <item>
             <layout class="QGridLayout" name="gridLayout_2">
-             <item row="1" column="0">
-              <widget class="QComboBox" name="edgeComboBox"/>
-             </item>
              <item row="0" column="0">
               <widget class="QLineEdit" name="edgeSearchLineEdit">
                <property name="text">
@@ -70,13 +67,6 @@ font-size: 12pt;</string>
               <widget class="QPushButton" name="edgeSearchButton">
                <property name="text">
                 <string>Search</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QPushButton" name="edgeScanButton">
-               <property name="text">
-                <string>Scan QR</string>
                </property>
               </widget>
              </item>
@@ -98,6 +88,9 @@ font-size: 12pt;</string>
                 <bool>true</bool>
                </property>
               </widget>
+             </item>
+             <item row="1" column="0" colspan="2">
+              <widget class="QComboBox" name="edgeComboBox"/>
              </item>
             </layout>
            </item>
@@ -130,16 +123,6 @@ font-size: 12pt;</string>
                </property>
               </widget>
              </item>
-             <item row="1" column="1">
-              <widget class="QPushButton" name="childScanButton">
-               <property name="text">
-                <string>Scan QR</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QComboBox" name="childComboBox"/>
-             </item>
              <item row="0" column="1">
               <widget class="QPushButton" name="childSearchButton">
                <property name="sizePolicy">
@@ -152,6 +135,9 @@ font-size: 12pt;</string>
                 <string>Search</string>
                </property>
               </widget>
+             </item>
+             <item row="1" column="0" colspan="2">
+              <widget class="QComboBox" name="childComboBox"/>
              </item>
             </layout>
            </item>

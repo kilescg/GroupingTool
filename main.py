@@ -15,6 +15,7 @@ def initialize_ui_function(ui):
 def connect_ui_with_event(ui):
     ui.edgeSearchButton.clicked.connect(lambda: search_event(ui, 'edge'))
     ui.childSearchButton.clicked.connect(lambda: search_event(ui, 'child'))
+    ui.addGroupButton.clicked.connect(lambda: add_group_event(ui))
     ui.addDeviceButton.clicked.connect(
         lambda: add_device_event(ui))
     ui.deleteRowButton.clicked.connect(

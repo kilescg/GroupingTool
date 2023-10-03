@@ -99,6 +99,20 @@ class SDE_SQLLite():
         self.conn.commit()
         return cur.lastrowid
 
+    def insert_kitting_device(self, kitting_device):
+        sql = ''' INSERT INTO kitting_device(edge_id, child_id) VALUES(?,?)'''
+        cur = self.conn.cursor()
+        cur.execute(sql, kitting_device)
+        self.conn.commit()
+        return cur.lastrowid
+
+    def insert_child_device(self, child_device):
+        sql = ''' INSERT INTO child_device(child_id, devicetype_id, controltype_id, emplacement_id, print_label, datetime) VALUES(?,?,?,?,?,?)'''
+        cur = self.conn.cursor()
+        cur.execute(sql, child_device)
+        self.conn.commit()
+        return cur.lastrowid
+
     def select_from_table(self, table_name, columns=None, where_condition=None):
         # Connect to the SQLite database
         cursor = self.conn.cursor()
@@ -133,6 +147,17 @@ class SDE_SQLLite():
             result.append(row_dict)
 
         return result
+
+    def select_value_equal(self, table_name, column_name, value1, value2):
+        cursor = self.conn.cursor()
+
+        # Create a query to search for values in the specified column using placeholders
+        query = f"SELECT {column_name} FROM {table_name} WHERE {value1}='{value2}'"
+        cursor.execute(query)
+        result = cursor.fetchone()
+        if result is None:
+            return None
+        return result[0]
 
     def search_value(self, table_name, column_name, keyword):
         cursor = self.conn.cursor()

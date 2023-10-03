@@ -74,3 +74,41 @@ def edge_combo_changed_event(ui):
     if len(note) != 0:
         note = "Note :" + note[0][0]
         ui.edgeNoteLabel.setText(note)
+
+
+def add_group_event(ui):
+    sql_db = SDE_SQLLite('database/DB_sdeautodeploy.db')
+    table_data = get_data_from_table_view(ui.groupListTableView)
+    headers = ["edge mac id", "child mac id", "device type",
+               "controller type", "location", "datetime"]
+    datetime = get_date_time()
+    is_all_data_valid = 1
+    for row in table_data:
+        edge_id = row[0]
+        child_id = row[1]
+        devicetype_id = sql_db.select_value_equal(
+            'device_type', 'devicetype_id', 'devicetype_name', row[2])
+        controllertype_id = sql_db.select_value_equal(
+            'controller_type', 'controllertype_id', 'controllertype_name', row[3])
+        emplacement_id = sql_db.select_value_equal(
+            'emplacement_type', 'emplacement_id', 'emplacement_name', row[4])
+        print_label = sql_db.select_value_equal(
+            'device_incoming', 'print_label', 'mac_id', row[1])
+        child_device = (child_id, devicetype_id, controllertype_id,
+                        emplacement_id, print_label, datetime)
+        print(child_device)
+        if any(item in (None, '', False) for item in child_device):
+            is_all_data_valid = 0
+            continue
+        # SDE_SQLLite.insert_child_device(child_device)
+        kitting_device = (edge_id, child_id)
+        SDE_SQLLite.insert_kitting_device(kitting_device)
+    if is_all_data_valid:
+        QMessageBox.warning(
+            None,
+            "Warning",
+            "Data invalid!",
+            QMessageBox.Ok,
+        )
+    send_request()  # send to engineering gateway
+    populate_table(ui.groupListTableView, headers, [])

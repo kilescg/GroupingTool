@@ -71,3 +71,7 @@ def delete_selected_row(table_view):
 def get_date_time():
     now = datetime.now()
     return now.strftime("%Y-%m-%d,%H:%M:%S")
+
+
+def send_request():
+    pass
