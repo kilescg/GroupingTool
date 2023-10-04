@@ -93,16 +93,15 @@ def add_group_event(ui):
         emplacement_id = sql_db.select_value_equal(
             'emplacement_type', 'emplacement_id', 'emplacement_name', row[4])
         print_label = sql_db.select_value_equal(
-            'device_incoming', 'print_label', 'mac_id', row[1])
+            'device_incoming', 'print_label', 'mac_id', row[1].split('_')[-1])
         child_device = (child_id, devicetype_id, controllertype_id,
                         emplacement_id, print_label, datetime)
-        print(child_device)
+        sql_db.insert_child_device(child_device)
         if any(item in (None, '', False) for item in child_device):
             is_all_data_valid = 0
             continue
-        # SDE_SQLLite.insert_child_device(child_device)
         kitting_device = (edge_id, child_id)
-        SDE_SQLLite.insert_kitting_device(kitting_device)
+        sql_db.insert_kitting_device(kitting_device)
     if is_all_data_valid:
         QMessageBox.warning(
             None,

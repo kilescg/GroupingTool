@@ -22,7 +22,6 @@ def connect_ui_with_event(ui):
         lambda: delete_selected_row(ui.groupListTableView))
     ui.clearGroupButton.clicked.connect(
         lambda: clear_group_event(ui))
-
     ui.edgeComboBox.currentTextChanged.connect(
         lambda _: edge_combo_changed_event(ui))
 

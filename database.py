@@ -107,7 +107,7 @@ class SDE_SQLLite():
         return cur.lastrowid
 
     def insert_child_device(self, child_device):
-        sql = ''' INSERT INTO child_device(child_id, devicetype_id, controltype_id, emplacement_id, print_label, datetime) VALUES(?,?,?,?,?,?)'''
+        sql = ''' INSERT INTO child_device(child_id, devicetype_id, controllertype_id, emplacement_id, print_label, datetime) VALUES(?,?,?,?,?,?)'''
         cur = self.conn.cursor()
         cur.execute(sql, child_device)
         self.conn.commit()
@@ -200,9 +200,8 @@ class SDE_SQLLite():
 
 
 if __name__ == '__main__':
-    pass
-    '''
     # insert types json to database
+    '''
     db = SDE_SQLLite("database/DB_sdeautodeploy.db")
     with open('configuration.json') as f:
         data = json.load(f)
@@ -220,39 +219,42 @@ if __name__ == '__main__':
             db.insert_device_type(template_data)
     '''
 
-    '''
     # insert dummy child to database
     # mac_id,status,note,print_label,datetime
-    db = SDE_SQLLite("database/DB_sdeautodeploy.db")
-    with open('configuration.json') as f:
-        data = json.load(f)
-        for num in range(999):
-            dt = get_date_time()
-            template_data = (f'mac_{num}', 'fame', 'fame', 'fame', 'fame')
-            db.insert_device_incoming(template_data)
-            print(num)
-    '''
+    # fake = Faker()
+    # db = SDE_SQLLite("database/DB_sdeautodeploy.db")
+    # with open('configuration.json') as f:
+    #     data = json.load(f)
+    #     for num in range(999):
+    #         dt = get_date_time()
+    #         note = ''
+    #         status = 'good' if random.random() > 0.5 else 'ng'
+    #         if (status == 'good'):
+    #             note = ''
+    #         if (status == 'ng'):
+    #             note = 'controller broke'
+    #         template_data = (f'mac{num}', status, note, '1', dt)
+    #         db.insert_device_incoming(template_data)
+    #         print(num)
 
-    '''
     # insert dummy edge to database
-    generate = DocumentGenerator()
-    db = SDE_SQLLite("database/DB_sdeautodeploy.db")
-    with open('configuration.json') as f:
-        data = json.load(f)
-        for num in range(999):
-            dt = get_date_time()
-            note_txt = generate.paragraph(min_sentences=13, max_sentences=25)
-            template_data = (num, note_txt)
-            db.insert_note(template_data)
-            print(num)
-    '''
+    # fake = Faker()
+    # generate = DocumentGenerator()
+    # db = SDE_SQLLite("database/DB_sdeautodeploy.db")
+    # with open('configuration.json') as f:
+    #     data = json.load(f)
+    #     for num in range(999):
+    #         dt = get_date_time()
+    #         note_txt = fake.address()
+    #         template_data = (num, note_txt)
+    #         db.insert_note(template_data)
+    #         print(num)
 
-    '''
     # incser dummy notes to database
-    db = SDE_SQLLite("database/DB_sdeautodeploy.db")
-    for num in range(999):
-        dt = get_date_time()
-        template_data = (num, f"fame_{num}", num)
-        db.insert_edge_device(template_data)
-        print(num)
-    '''
+    # fake = Faker()
+    # db = SDE_SQLLite("database/DB_sdeautodeploy.db")
+    # for num in range(999):
+    #     dt = get_date_time()
+    #     template_data = (num, f"fame_{num}", num)
+    #     db.insert_edge_device(template_data)
+    #     print(num)
