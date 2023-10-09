@@ -1,205 +1,125 @@
 import sqlite3
-import json
-from utils import get_date_time
 from sqlite3 import Error
-from essential_generators import DocumentGenerator
+import random
+from utils import *
 
 
-class SDE_SQLLite():
+class SDE_SQLLite:
     def __init__(self, db_path):
         self.db_path = db_path
         self.conn = None
         self.connect_db()
 
     def connect_db(self):
-        '''connect to database'''
+        """Connect to the database."""
         try:
             self.conn = sqlite3.connect(self.db_path)
-            return True
         except Error as e:
-            print(e)
-            return False
+            raise Exception(f"Error connecting to the database: {e}")
 
-    def check_data_exists(self, table_name, column, data):
-        # Connect to the SQLite database
+    def execute_query(self, query, values=None):
+        """Execute a SQL query with optional values."""
+        try:
+            cursor = self.conn.cursor()
+            if values:
+                cursor.execute(query, values)
+            else:
+                cursor.execute(query)
+            return cursor.fetchall()
+        except Error as e:
+            self.conn.rollback()
+            raise Exception(f"Error executing SQL query: {e}")
+
+    def insert_data(self, table_name, data):
+        """Insert data into a table."""
+        columns = ', '.join(data.keys())
+        placeholders = ', '.join(['?'] * len(data))
+        query = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})"
+        status = self.execute_query(query, tuple(data.values()))
+        self.conn.commit()
+        return status
+
+    def search_value(self, table_name, column_name, keyword, limit=100):
+        """search data from a table and column."""
         cursor = self.conn.cursor()
+        query = f"SELECT {column_name} FROM {table_name} WHERE {column_name} LIKE ? LIMIT {limit}"
+        keyword_with_wildcard = f"%{keyword}%"
+        cursor.execute(query, (keyword_with_wildcard,))
+        results = cursor.fetchall()
+        return results
 
-        # Create a query to check if data exists in the specified column
-        query = f"SELECT COUNT(*) FROM {table_name} WHERE {column} = ?"
-
-        # Execute the query with the provided data value
-        cursor.execute(query, (data,))
-        result = cursor.fetchone()
-
-        # Check if the count is greater than zero, indicating the data exists
-        if result[0] > 0:
-            return True
-        else:
-            return False
-
-    def get_data_from_column(self, table_name, column_name):
-        # Connect to the SQLite database
-        cursor = self.conn.cursor()
-
-        # Create a query to select data from the specified column
-        query = f"SELECT {column_name} FROM {table_name}"
-
-        # Execute the query and fetch all the results
-        cursor.execute(query)
-        data_list = [row[0] for row in cursor.fetchall()]
-        return data_list
-
-    def create_child_device(self, child_device):
-        sql = ''' INSERT INTO child_device(child_id,devicetype_id,controllertype_id,emplacement_id,     print_label,datetime) VALUES(?,?,?,?,?,?)'''
-        cur = self.conn.cursor()
-        cur.execute(sql, child_device)
-        self.conn.commit()
-        return cur.lastrowid
-
-    def insert_device_type(self, device_type):
-        sql = ''' INSERT INTO device_type(devicetype_id,devicetype_name,datetime) VALUES(?,?,?)'''
-        cur = self.conn.cursor()
-        cur.execute(sql, device_type)
-        self.conn.commit()
-        return cur.lastrowid
-
-    def insert_controller_type(self, controller_type):
-        sql = ''' INSERT INTO controller_type(controllertype_id,controllertype_name,datetime) VALUES(?,?,?)'''
-        cur = self.conn.cursor()
-        cur.execute(sql, controller_type)
-        self.conn.commit()
-        return cur.lastrowid
-
-    def insert_emplacement_type(self, emplacement_type):
-        sql = ''' INSERT INTO emplacement_type(emplacement_id,emplacement_name,datetime) VALUES(?,?,?)'''
-        cur = self.conn.cursor()
-        cur.execute(sql, emplacement_type)
-        self.conn.commit()
-        return cur.lastrowid
-
-    def insert_device_incoming(self, device_incoming):
-        sql = ''' INSERT INTO device_incoming(mac_id,status,note,print_label,datetime) VALUES(?,?,?,?,?)'''
-        cur = self.conn.cursor()
-        cur.execute(sql, device_incoming)
-        self.conn.commit()
-        return cur.lastrowid
-
-    # super mock lol
-    def insert_edge_device(self, device_incoming):
-        sql = ''' INSERT INTO edge_device(no,edge_id,note_id) VALUES(?,?,?)'''
-        cur = self.conn.cursor()
-        cur.execute(sql, device_incoming)
-        self.conn.commit()
-        return cur.lastrowid
-
-    def insert_note(self, note):
-        sql = ''' INSERT INTO note(note_id, note_detail) VALUES(?,?)'''
-        cur = self.conn.cursor()
-        cur.execute(sql, note)
-        self.conn.commit()
-        return cur.lastrowid
-
-    def insert_kitting_device(self, kitting_device):
-        sql = ''' INSERT INTO kitting_device(edge_id, child_id) VALUES(?,?)'''
-        cur = self.conn.cursor()
-        cur.execute(sql, kitting_device)
-        self.conn.commit()
-        return cur.lastrowid
-
-    def insert_child_device(self, child_device):
-        sql = ''' INSERT INTO child_device(child_id, devicetype_id, controllertype_id, emplacement_id, print_label, datetime) VALUES(?,?,?,?,?,?)'''
-        cur = self.conn.cursor()
-        cur.execute(sql, child_device)
-        self.conn.commit()
-        return cur.lastrowid
-
-    def select_from_table(self, table_name, columns=None, where_condition=None):
-        # Connect to the SQLite database
-        cursor = self.conn.cursor()
-
-        # Create the SELECT statement
+    def select_data(self, table_name, columns=None, where_condition=None):
+        """Select data from a table."""
         if columns is None:
             column_names = "*"
         else:
-            column_names = ", ".join(columns)
-
+            column_names = ', '.join(columns)
         query = f"SELECT {column_names} FROM {table_name}"
-
-        # Add a WHERE clause if a condition is provided
-        if where_condition is not None:
+        if where_condition:
             query += f" WHERE {where_condition}"
-
-        # Execute the query
-        cursor.execute(query)
-
-        # Fetch all the results
-        rows = cursor.fetchall()
-
-        # Get the column names
-        column_names = [description[0] for description in cursor.description]
-
-        # Convert the results to a list of dictionaries
-        result = []
-        for row in rows:
-            row_dict = {}
-            for i in range(len(column_names)):
-                row_dict[column_names[i]] = row[i]
-            result.append(row_dict)
-
-        return result
-
-    def select_value_equal(self, table_name, column_name, value1, value2):
         cursor = self.conn.cursor()
-
-        # Create a query to search for values in the specified column using placeholders
-        query = f"SELECT {column_name} FROM {table_name} WHERE {value1}='{value2}'"
         cursor.execute(query)
-        result = cursor.fetchone()
-        if result is None:
-            return None
-        return result[0]
+        return cursor.fetchall()
 
-    def search_value(self, table_name, column_name, keyword):
-        cursor = self.conn.cursor()
+    def close_db(self):
+        """Close the database connection."""
+        if self.conn:
+            self.conn.close()
 
-        # Create a query to search for names in the specified column using the keyword
-        query = f"SELECT {column_name} FROM {table_name} WHERE {column_name} LIKE ? LIMIT 100"
 
-        # Add a '%' wildcard before and after the keyword to perform a partial match
-        keyword_with_wildcard = f"%{keyword}%"
+def generate_mock_data():
+    from faker import Faker
 
-        # Execute the query with the keyword
-        cursor.execute(query, (keyword_with_wildcard,))
+    fake = Faker()
+    db_manager = SDE_SQLLite("database/DB_sdeautodeploy.db")
 
-        # Fetch all the matching results
-        results = cursor.fetchall()
+    '''
+    Solution
+    '''
+    for i in range(10):
+        solution = {
+            'solution_id': f'{i}',
+            'solution_name': fake.first_name(),
+        }
+        db_manager.insert_data('solution', solution)
 
-        return results
+    '''
+    Project
+    '''
+    project_num = 0
+    for i in range(10):
+        for _ in range(random.randint(0, 4)):
+            project = {
+                'project_id': f'{project_num}',
+                'dev_id': 1,
+                'project_name': fake.last_name(),
+                'datetime': get_date_time()
+            }
+            project_num += 1
+            db_manager.insert_data('project', project)
 
-    def get_note_details_by_edge_id(self, edge_id):
-        try:
-            # Connect to the SQLite database
-            cursor = self.conn.cursor()
-
-            # Execute the SQL query
-            cursor.execute("""
-                SELECT n.note_detail
-                FROM edge_device AS e
-                JOIN note AS n ON e.note_id = n.note_id
-                WHERE e.edge_id = ?
-            """, (edge_id,))
-
-            # Fetch all the results
-            note_details = cursor.fetchall()
-
-            return note_details
-
-        except sqlite3.Error as e:
-            print("SQLite error:", e)
-            return None
+    '''
+    Device Configuration
+    '''
+    device_config_num = 0
+    for i in range(project_num):
+        for _ in range(random.randint(0, 4)):
+            device_config_id = {
+                'device_configuration_id': f'{device_config_num}',
+                'device_name_prefix': f'{random.randint(1,99)}_{random.randint(1,99)}',
+                'project_id': f'{i}',
+                'devicetype_id': f'{random.randint(0,38)}',
+                'controllertype_id': f'{random.randint(0,24)}',
+                'emplacement_id': f'{random.randint(0,2)}',
+                'room': f'room{random.randint(1,99)}',
+            }
+            device_config_num += 1
+            db_manager.insert_data('device_configuration', device_config_id)
 
 
 if __name__ == '__main__':
+
+    generate_mock_data()
     # insert types json to database
     '''
     db = SDE_SQLLite("database/DB_sdeautodeploy.db")

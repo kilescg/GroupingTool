@@ -1,5 +1,5 @@
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
-from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import QMessageBox, QHeaderView
 from datetime import datetime
 
 
@@ -12,6 +12,8 @@ def populate_table(table_view, headers, data):
         model.appendRow(row_items)
 
     table_view.setModel(model)
+    header = table_view.horizontalHeader()
+    header.setSectionResizeMode(QHeaderView.Stretch)
 
 
 def get_data_from_table_view(table_view):
@@ -32,6 +34,15 @@ def get_data_from_table_view(table_view):
         data.append(row_data)
 
     return data
+
+
+def get_date_time():
+    now = datetime.now()
+    return now.strftime("%Y-%m-%d,%H:%M:%S")
+
+
+def send_request():
+    pass
 
 
 def delete_selected_row(table_view):
@@ -66,12 +77,3 @@ def delete_selected_row(table_view):
             QMessageBox.Ok,
         )
         return
-
-
-def get_date_time():
-    now = datetime.now()
-    return now.strftime("%Y-%m-%d,%H:%M:%S")
-
-
-def send_request():
-    pass
