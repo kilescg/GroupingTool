@@ -61,6 +61,16 @@ class SDE_SQLLite:
         cursor.execute(query)
         return cursor.fetchall()
 
+    def update_data(self, table_name, data, where_condition):
+        """Update data in a table based on a WHERE condition."""
+        if not data:
+            raise ValueError("No data provided for update.")
+        set_values = ', '.join([f"{key} = ?" for key in data.keys()])
+        query = f"UPDATE {table_name} SET {set_values} WHERE {where_condition}"
+        status = self.execute_query(query, tuple(data.values()))
+        self.conn.commit()
+        return status
+
     def close_db(self):
         """Close the database connection."""
         if self.conn:
@@ -69,6 +79,7 @@ class SDE_SQLLite:
 
 def generate_mock_data():
     from faker import Faker
+    import random
 
     fake = Faker()
     db_manager = SDE_SQLLite("database/DB_sdeautodeploy.db")
@@ -76,45 +87,47 @@ def generate_mock_data():
     '''
     Solution
     '''
-    for i in range(10):
+    for i in range(900):
         solution = {
-            'solution_id': f'{i}',
-            'solution_name': fake.first_name(),
+            'child_id': f'f_{i}',
+            'bom_id': None,
+            'print_label': random.randint(0, 1),
+            'datetime': get_date_time(),
         }
-        db_manager.insert_data('solution', solution)
-
+        db_manager.insert_data('child_device', solution)
+        print(i)
     '''
     Project
     '''
-    project_num = 0
-    for i in range(10):
-        for _ in range(random.randint(0, 4)):
-            project = {
-                'project_id': f'{project_num}',
-                'dev_id': 1,
-                'project_name': fake.last_name(),
-                'datetime': get_date_time()
-            }
-            project_num += 1
-            db_manager.insert_data('project', project)
+    # project_num = 0
+    # for i in range(10):
+    #     for _ in range(random.randint(0, 4)):
+    #         project = {
+    #             'project_id': f'{project_num}',
+    #             'dev_id': 1,
+    #             'project_name': fake.last_name(),
+    #             'datetime': get_date_time()
+    #         }
+    #         project_num += 1
+    #         db_manager.insert_data('project', project)
 
-    '''
-    Device Configuration
-    '''
-    device_config_num = 0
-    for i in range(project_num):
-        for _ in range(random.randint(0, 4)):
-            device_config_id = {
-                'device_configuration_id': f'{device_config_num}',
-                'device_name_prefix': f'{random.randint(1,99)}_{random.randint(1,99)}',
-                'project_id': f'{i}',
-                'devicetype_id': f'{random.randint(0,38)}',
-                'controllertype_id': f'{random.randint(0,24)}',
-                'emplacement_id': f'{random.randint(0,2)}',
-                'room': f'room{random.randint(1,99)}',
-            }
-            device_config_num += 1
-            db_manager.insert_data('device_configuration', device_config_id)
+    # '''
+    # Device Configuration
+    # '''
+    # device_config_num = 0
+    # for i in range(project_num):
+    #     for _ in range(random.randint(0, 4)):
+    #         device_config_id = {
+    #             'device_configuration_id': f'{device_config_num}',
+    #             'device_name_prefix': f'{random.randint(1,99)}_{random.randint(1,99)}',
+    #             'project_id': f'{i}',
+    #             'devicetype_id': f'{random.randint(0,38)}',
+    #             'controllertype_id': f'{random.randint(0,24)}',
+    #             'emplacement_id': f'{random.randint(0,2)}',
+    #             'room': f'room{random.randint(1,99)}',
+    #         }
+    #         device_config_num += 1
+    #         db_manager.insert_data('device_configuration', device_config_id)
 
 
 if __name__ == '__main__':

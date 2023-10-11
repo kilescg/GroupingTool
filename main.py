@@ -21,10 +21,21 @@ def connect_ui_with_event(ui):
         lambda _: edge_combo_changed_event(ui))
 
     ui.bomComboBox.currentIndexChanged.connect(
-        lambda _: project_combo_changed_event(ui))
-    project_combo_changed_event(ui)
+        lambda _: bom_combobox_changed_event(ui))
+    bom_combobox_changed_event(ui)
+
+    ui.bomRefreshButton.clicked.connect(
+        lambda _: refresh_bom_event(ui))
 
     # tab 2
+    ui.deleteRowButton.clicked.connect(
+        lambda: delete_selected_row(ui.bomTableView))
+    ui.addProfileButton.clicked.connect(
+        lambda: add_profile_event(ui))
+    ui.addBomButton.clicked.connect(
+        lambda: add_bom_event(ui))
+    ui.clearBomButton.clicked.connect(
+        lambda: clear_group_event(ui))
 
 
 if __name__ == "__main__":

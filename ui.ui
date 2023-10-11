@@ -18,9 +18,9 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
-      <widget class="QWidget" name="tab">
+      <widget class="QWidget" name="kittingTab">
        <attribute name="title">
         <string>Kitting Tool</string>
        </attribute>
@@ -155,6 +155,16 @@ font-size: 12pt;</string>
                </item>
                <item>
                 <layout class="QGridLayout" name="gridLayout_3">
+                 <item row="0" column="0">
+                  <widget class="QLineEdit" name="childSearchLineEdit">
+                   <property name="placeholderText">
+                    <string>keyword</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="0" colspan="3">
+                  <widget class="QComboBox" name="childComboBox"/>
+                 </item>
                  <item row="0" column="1">
                   <widget class="QPushButton" name="childSearchButton">
                    <property name="sizePolicy">
@@ -187,16 +197,6 @@ font-size: 12pt;</string>
                    </property>
                   </widget>
                  </item>
-                 <item row="1" column="0" colspan="2">
-                  <widget class="QComboBox" name="childComboBox"/>
-                 </item>
-                 <item row="0" column="0">
-                  <widget class="QLineEdit" name="childSearchLineEdit">
-                   <property name="placeholderText">
-                    <string>keyword</string>
-                   </property>
-                  </widget>
-                 </item>
                 </layout>
                </item>
                <item>
@@ -209,7 +209,44 @@ font-size: 12pt;</string>
                   </widget>
                  </item>
                  <item>
-                  <widget class="QComboBox" name="bomComboBox"/>
+                  <layout class="QHBoxLayout" name="horizontalLayout_6">
+                   <item>
+                    <widget class="QComboBox" name="bomComboBox">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="bomRefreshButton">
+                     <property name="styleSheet">
+                      <string notr="true">QPushButton {
+                background-color: #3498db;
+                color: #ffffff;
+                border: 2px solid #3498db;
+                border-radius: 5px;
+                padding: 0px 10px;
+            }
+            
+            QPushButton:hover {
+                background-color: #2980b9;
+                border: 2px solid #2980b9;
+            }
+            
+            QPushButton:pressed {
+                background-color: #1f618d;
+                border: 2px solid #1f618d;
+            }</string>
+                     </property>
+                     <property name="text">
+                      <string>Refresh</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
                  </item>
                  <item>
                   <widget class="QLabel" name="label">
@@ -292,7 +329,7 @@ font-size: 12pt;</string>
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_2">
+      <widget class="QWidget" name="bomTab">
        <property name="styleSheet">
         <string notr="true">font-family: Arial, Helvetica, sans-serif;
 font-size: 12pt;</string>
@@ -363,6 +400,16 @@ font-size: 12pt;</string>
            <widget class="QComboBox" name="locationComboBox"/>
           </item>
           <item>
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Room</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="roomLineEdit"/>
+          </item>
+          <item>
            <spacer name="verticalSpacer">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -379,9 +426,9 @@ font-size: 12pt;</string>
            </spacer>
           </item>
           <item>
-           <widget class="QPushButton" name="addDeviceButton">
+           <widget class="QPushButton" name="addProfileButton">
             <property name="text">
-             <string>Add Device</string>
+             <string>Add Profile</string>
             </property>
            </widget>
           </item>
@@ -400,7 +447,7 @@ font-size: 12pt;</string>
            </widget>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEdit"/>
+           <widget class="QLineEdit" name="bomNameLineEdit"/>
           </item>
           <item>
            <widget class="QTableView" name="bomTableView">
@@ -413,7 +460,7 @@ font-size: 12pt;</string>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="addGroupButton_3">
+           <widget class="QPushButton" name="addBomButton">
             <property name="text">
              <string>Add Group</string>
             </property>
@@ -429,7 +476,7 @@ font-size: 12pt;</string>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="clearGroupButton">
+             <widget class="QPushButton" name="clearBomButton">
               <property name="text">
                <string>Clear Group</string>
               </property>
