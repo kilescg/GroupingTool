@@ -1,193 +1,203 @@
-import sqlite3
-from sqlite3 import Error
-import random
+import mysql.connector
+import json
 from utils import *
 
 
-class SDE_SQLLite:
-    def __init__(self, db_path):
-        self.db_path = db_path
-        self.conn = None
-        self.connect_db()
+class MySQLHandler:
+    def __init__(self, host, user, password, database):
+        self.host = host
+        self.user = user
+        self.password = password
+        self.database = database
+        self.connection = None
+        self.cursor = None
 
-    def connect_db(self):
-        """Connect to the database."""
-        try:
-            self.conn = sqlite3.connect(self.db_path)
-        except Error as e:
-            raise Exception(f"Error connecting to the database: {e}")
+    def connect(self):
+        self.connection = mysql.connector.connect(
+            host=self.host,
+            user=self.user,
+            password=self.password,
+            database=self.database
+        )
+        self.cursor = self.connection.cursor()
 
-    def execute_query(self, query, values=None):
-        """Execute a SQL query with optional values."""
-        try:
-            cursor = self.conn.cursor()
-            if values:
-                cursor.execute(query, values)
-            else:
-                cursor.execute(query)
-            return cursor.fetchall()
-        except Error as e:
-            self.conn.rollback()
-            raise Exception(f"Error executing SQL query: {e}")
+    def disconnect(self):
+        if self.cursor:
+            self.cursor.close()
+        if self.connection:
+            self.connection.close()
 
-    def insert_data(self, table_name, data):
-        """Insert data into a table."""
-        columns = ', '.join(data.keys())
-        placeholders = ', '.join(['?'] * len(data))
-        query = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})"
-        status = self.execute_query(query, tuple(data.values()))
-        self.conn.commit()
-        return status
+    def insert_data(self, table_name, data_dict):
+        if not self.connection:
+            self.connect()
 
-    def search_value(self, table_name, column_name, keyword, limit=100):
-        """search data from a table and column."""
-        cursor = self.conn.cursor()
-        query = f"SELECT {column_name} FROM {table_name} WHERE {column_name} LIKE ? LIMIT {limit}"
-        keyword_with_wildcard = f"%{keyword}%"
-        cursor.execute(query, (keyword_with_wildcard,))
-        results = cursor.fetchall()
+        # Create placeholders for column names and values
+        columns = ', '.join(data_dict.keys())
+        placeholders = ', '.join(['%s'] * len(data_dict))
+
+        # Build the INSERT query dynamically
+        insert_query = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders})"
+        # Extract the values from the dictionary
+        data = tuple(data_dict.values())
+
+        self.cursor.execute(insert_query, data)
+        self.connection.commit()
+
+    def select_data(self, table_name, column_name=[], condition=None):
+        if not self.connection:
+            self.connect()
+
+        selected_column = ''
+
+        if column_name == []:
+            selected_column = '*'
+        else:
+            selected_column = ', '.join(column_name)
+
+        select_query = f"SELECT {selected_column} FROM {table_name}"
+        if condition != None:
+            select_query += f' WHERE {condition}'
+        self.cursor.execute(select_query)
+        results = self.cursor.fetchall()
         return results
 
-    def select_data(self, table_name, columns=None, where_condition=None):
-        """Select data from a table."""
-        if columns is None:
-            column_names = "*"
-        else:
-            column_names = ', '.join(columns)
-        query = f"SELECT {column_names} FROM {table_name}"
-        if where_condition:
-            query += f" WHERE {where_condition}"
-        cursor = self.conn.cursor()
-        cursor.execute(query)
-        return cursor.fetchall()
+    def get_data_with_keyword(self, table_name, column_name, keyword, limit=100):
+        try:
+            # Define the SQL query to retrieve data
+            query = f"SELECT * FROM {table_name} WHERE {column_name} LIKE %s LIMIT %s"
 
-    def update_data(self, table_name, data, where_condition):
-        """Update data in a table based on a WHERE condition."""
-        if not data:
-            raise ValueError("No data provided for update.")
-        set_values = ', '.join([f"{key} = ?" for key in data.keys()])
-        query = f"UPDATE {table_name} SET {set_values} WHERE {where_condition}"
-        status = self.execute_query(query, tuple(data.values()))
-        self.conn.commit()
-        return status
+            # Execute the query
+            self.cursor.execute(query, (f"%{keyword}%", limit))
 
-    def close_db(self):
-        """Close the database connection."""
-        if self.conn:
-            self.conn.close()
+            # Fetch the results
+            result = self.cursor.fetchall()
+
+            return result
+
+        except mysql.connector.Error as error:
+            print(f"Error: {error}")
+            return []
+
+    def execute_query(self, query, params=None):
+        try:
+            # Create a cursor to execute SQL queries
+            cursor = self.connection.cursor()
+
+            # Execute the query with optional parameters
+            if params:
+                cursor.execute(query, params)
+            else:
+                cursor.execute(query)
+
+            # Commit changes (if needed) and fetch results (if applicable)
+            if query.strip().lower().startswith("select"):
+                result = cursor.fetchall()
+            else:
+                self.connection.commit()
+                result = None
+            return result
+        except mysql.connector.Error as error:
+            print(f"Error: {error}")
+            return []
+
+    def search_value(self, table_name, column_name, keyword):
+        cursor = self.connection.cursor()
+
+        # Create a query to search for names in the specified column using the keyword
+        query = f"SELECT {column_name} FROM {table_name} WHERE {column_name} LIKE %s LIMIT 100"
+
+        # Add a '%' wildcard before and after the keyword to perform a partial match
+        keyword_with_wildcard = f"%{keyword}%"
+
+        # Execute the query with the keyword
+        cursor.execute(query, (keyword_with_wildcard,))
+
+        # Fetch all the matching results
+        results = cursor.fetchall()
+
+        # Close the cursor and connection
+        cursor.close()
+        return results
+
+    def close(self):
+        self.disconnect()
+
+    def update_value(self, table_name, column_name, new_value, condition, params=None):
+        if not self.connection:
+            self.connect()
+
+        try:
+            # Create a SQL query to update the value in the specified column based on a condition
+            query = f"UPDATE {table_name} SET {column_name} = %s WHERE {condition}"
+
+            # Execute the query with the new value and optional parameters
+            if params:
+                self.cursor.execute(query, (new_value,) + params)
+            else:
+                self.cursor.execute(query, (new_value,))
+
+            # Commit the changes
+            self.connection.commit()
+
+        except mysql.connector.Error as error:
+            print(f"Error: {error}")
 
 
-def generate_mock_data():
+def add_types_dummy():
     from faker import Faker
     import random
 
-    fake = Faker()
-    db_manager = SDE_SQLLite("database/DB_sdeautodeploy.db")
-
-    '''
-    Solution
-    '''
-    for i in range(900):
-        solution = {
-            'child_id': f'f_{i}',
-            'bom_id': None,
-            'print_label': random.randint(0, 1),
-            'datetime': get_date_time(),
-        }
-        db_manager.insert_data('child_device', solution)
-        print(i)
-    '''
-    Project
-    '''
-    # project_num = 0
-    # for i in range(10):
-    #     for _ in range(random.randint(0, 4)):
-    #         project = {
-    #             'project_id': f'{project_num}',
-    #             'dev_id': 1,
-    #             'project_name': fake.last_name(),
-    #             'datetime': get_date_time()
-    #         }
-    #         project_num += 1
-    #         db_manager.insert_data('project', project)
-
-    # '''
-    # Device Configuration
-    # '''
-    # device_config_num = 0
-    # for i in range(project_num):
-    #     for _ in range(random.randint(0, 4)):
-    #         device_config_id = {
-    #             'device_configuration_id': f'{device_config_num}',
-    #             'device_name_prefix': f'{random.randint(1,99)}_{random.randint(1,99)}',
-    #             'project_id': f'{i}',
-    #             'devicetype_id': f'{random.randint(0,38)}',
-    #             'controllertype_id': f'{random.randint(0,24)}',
-    #             'emplacement_id': f'{random.randint(0,2)}',
-    #             'room': f'room{random.randint(1,99)}',
-    #         }
-    #         device_config_num += 1
-    #         db_manager.insert_data('device_configuration', device_config_id)
-
-
-if __name__ == '__main__':
-
-    generate_mock_data()
-    # insert types json to database
-    '''
-    db = SDE_SQLLite("database/DB_sdeautodeploy.db")
-    with open('configuration.json') as f:
+    with open('./configuration.json') as f:
         data = json.load(f)
         for idx, val in enumerate(data["location"]):
             dt = get_date_time()
-            template_data = (idx, val, dt)
-            db.insert_emplacement_type(template_data)
+            field_name = ['emplacement_name', 'datetime']
+            template_data = [val, dt]
+            input_data = dict(zip(field_name, template_data))
+            db_handle.insert_data('emplacement_type', input_data)
         for idx, val in enumerate(data["controller_type"]):
             dt = get_date_time()
-            template_data = (idx, val, dt)
-            db.insert_controller_type(template_data)
+            field_name = ['controller_type_name', 'datetime']
+            template_data = [val, dt]
+            input_data = dict(zip(field_name, template_data))
+            db_handle.insert_data('controller_type', input_data)
         for idx, val in enumerate(data["device_type"]):
             dt = get_date_time()
-            template_data = (idx, val, dt)
-            db.insert_device_type(template_data)
-    '''
+            field_name = ['device_type_name', 'datetime']
+            template_data = [val, dt]
+            input_data = dict(zip(field_name, template_data))
+            db_handle.insert_data('device_type', input_data)
 
-    # insert dummy child to database
-    # mac_id,status,note,print_label,datetime
-    # fake = Faker()
-    # db = SDE_SQLLite("database/DB_sdeautodeploy.db")
-    # with open('configuration.json') as f:
-    #     data = json.load(f)
-    #     for num in range(999):
-    #         dt = get_date_time()
-    #         note = ''
-    #         status = 'good' if random.random() > 0.5 else 'ng'
-    #         if (status == 'good'):
-    #             note = ''
-    #         if (status == 'ng'):
-    #             note = 'controller broke'
-    #         template_data = (f'mac{num}', status, note, '1', dt)
-    #         db.insert_device_incoming(template_data)
-    #         print(num)
+        fake = Faker()
+        for i in range(100):
+            field_name = ['note_detail']
+            template_data = [fake.address()]
+            input_data = dict(zip(field_name, template_data))
 
-    # insert dummy edge to database
-    # fake = Faker()
-    # generate = DocumentGenerator()
-    # db = SDE_SQLLite("database/DB_sdeautodeploy.db")
-    # with open('configuration.json') as f:
-    #     data = json.load(f)
-    #     for num in range(999):
-    #         dt = get_date_time()
-    #         note_txt = fake.address()
-    #         template_data = (num, note_txt)
-    #         db.insert_note(template_data)
-    #         print(num)
+        for i in range(100):
+            field_name = ['port_no', 'ip_address', 'edge_id', 'edgetype_id', 'package_id', 'thingsgroup_id',
+                          'tuyauniq_id', 'note_id', 'label_print', 'thinggroup_add', 'status', 'datatime_start', 'datatime_end']
+            template_data = [i, fake.ipv4_private(), random_string(
+                12), i, i, i, i, i, '1', '1', '1', fake.date_time(), fake.date_time()]
+            input_data = dict(zip(field_name, template_data))
+            db_handle.insert_data('edge_device', input_data)
 
-    # incser dummy notes to database
-    # fake = Faker()
-    # db = SDE_SQLLite("database/DB_sdeautodeploy.db")
-    # for num in range(999):
-    #     dt = get_date_time()
-    #     template_data = (num, f"fame_{num}", num)
-    #     db.insert_edge_device(template_data)
-    #     print(num)
+        for i in range(100):
+            field_name = ['child_id', 'bom_id',
+                          'print_label', 'note', 'datetime']
+            template_data = [random_string(
+                12), 0, '0', fake.address(), fake.date_time()]
+            input_data = dict(zip(field_name, template_data))
+            db_handle.insert_data('child_device', input_data)
+
+
+db_host = "localhost"
+db_user = "root"
+db_password = "password"
+db_name = "db_sde"
+
+db_handle = MySQLHandler(db_host, db_user, db_password, db_name)
+db_handle.connect()
+
+if __name__ == '__main__':
+    add_types_dummy()

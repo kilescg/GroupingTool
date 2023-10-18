@@ -1,54 +1,56 @@
-from database import SDE_SQLLite
+from database import *
 from PyQt5.QtWidgets import QMessageBox
 from utils import *
 
+bom_headers = ['bom_id', 'name_prefix', 'devicetype_id',
+               'controllertype_id', 'emplacement_id', 'floor_name']
+profile_headers = ['name_prefix', 'devicetype_id',
+                   'controllertype_id', 'emplacement_id', 'floor_name']
+
 
 def combo_box_Initialize(ui):
-    sql_db = SDE_SQLLite('database/DB_sdeautodeploy.db')
-    options = sql_db.select_data('bom', ['bom_id'])
+    options = db_handle.select_data('bom', ['bom_name'])
     for option in options:
         ui.bomComboBox.addItem(option[0])
-    device_type = sql_db.select_data('device_type', ['devicetype_name'])
+    device_type = db_handle.select_data('device_type', ['device_type_name'])
     for option in device_type:
         ui.deviceTypeComboBox.addItem(option[0])
-    emplacement_type = sql_db.select_data(
+    emplacement_type = db_handle.select_data(
         'emplacement_type', ['emplacement_name'])
     for option in emplacement_type:
         ui.locationComboBox.addItem(option[0])
-    controller_type = sql_db.select_data(
-        'controller_type', ['controllertype_name'])
+    controller_type = db_handle.select_data(
+        'controller_type', ['controller_type_name'])
     for option in controller_type:
         ui.controllerTypeComboBox.addItem(option[0])
 
 
 def search_event(ui, item_type):
-    sql_db = SDE_SQLLite('database/DB_sdeautodeploy.db')
     if item_type == 'edge':
         keyword = ui.edgeSearchLineEdit.text()
-        data_list = sql_db.search_value('edge_device', 'edge_id', keyword)
+        data_list = db_handle.search_value('edge_device', 'edge_id', keyword)
         ui.edgeComboBox.clear()
         for option in data_list:
             ui.edgeComboBox.addItem(option[0])
     elif item_type == 'child':
         keyword = ui.childSearchLineEdit.text()
-        data_list = sql_db.search_value('child_device', 'child_id', keyword)
+        data_list = db_handle.search_value('child_device', 'child_id', keyword)
         ui.childComboBox.clear()
         for option in data_list:
             ui.childComboBox.addItem(option[0])
 
 
 def edge_combo_changed_event(ui):
-    sql_db = SDE_SQLLite('database/DB_sdeautodeploy.db')
     query = """
             SELECT n.note_detail
             FROM edge_device AS e
             JOIN note AS n ON e.note_id = n.note_id
-            WHERE e.edge_id = ?
+            WHERE e.edge_id = %s
         """
     value = ui.edgeComboBox.currentText().strip()
     if not value:
         return
-    note = sql_db.execute_query(query, (value,))
+    note = db_handle.execute_query(query, (value,))
     if len(note) != 0:
         note = note[0][0]
         ui.noteTextBrowser.setText(note)
@@ -58,83 +60,84 @@ def edge_combo_changed_event(ui):
 
 def bom_combobox_changed_event(ui):
     processed_config_list = []
-    header = ['device_name_prefix', 'device_type',
+    header = ['name_prefix', 'device_type',
               'controller_type', 'location', 'room']
-    sql_db = SDE_SQLLite('database/DB_sdeautodeploy.db')
+
     value = ui.bomComboBox.currentText()
     query = f"""
-            SELECT dp.name_prefix, dp.devicetype_id, dp.controllertype_id, dp.emplacement_id, dp.room
-            FROM device_profile AS dp
-            JOIN bom AS b ON dp.bom_id = b.bom_id
-            WHERE b.bom_id= '{value}'
+            SELECT dp.name_prefix, dt.device_type_name, ct.controller_type_name, et.emplacement_name, dp.floor_name
+            FROM device_profile dp
+            JOIN controller_type ct ON dp.controller_type_id = ct.controller_type_id
+            JOIN device_type dt ON dp.device_type_id = dt.device_type_id
+            JOIN emplacement_type et ON dp.emplacement_id = et.emplacement_id
+            JOIN bom b ON dp.deprofile_id = b.deprofile_id
+            WHERE b.bom_name = '{value}';
         """
-    config_list = sql_db.execute_query(query)
-    for config in config_list:
-        device_name_prefix = config[0]
-        device_type = sql_db.select_data(
-            'device_type', ['devicetype_name'], f"devicetype_id={config[1]}")[0][0]
-        controller_type = sql_db.select_data(
-            'controller_type', ['controllertype_name'], f"controllertype_id={config[2]}")[0][0]
-        location = sql_db.select_data(
-            'emplacement_type', ['emplacement_name'], f"emplacement_id={config[3]}")[0][0]
-        room = config[4]
-        processed_config_list.append(
-            [device_name_prefix, device_type, controller_type, location, room])
-    populate_table(ui.groupListTableView, header, processed_config_list)
+    config_list = db_handle.execute_query(query)
+    populate_table(ui.groupListTableView, header, config_list)
 
 
 def refresh_bom_event(ui):
     ui.bomComboBox.clear()
-    sql_db = SDE_SQLLite('database/DB_sdeautodeploy.db')
-    box_id_list = sql_db.select_data('bom', ['bom_id'])
+    box_id_list = db_handle.select_data('bom', ['bom_name'])
     for box_id in box_id_list:
         ui.bomComboBox.addItem(box_id[0])
 
 
 def add_bom_event(ui):
-    sql_db = SDE_SQLLite('database/DB_sdeautodeploy.db')
-    headers = ['bom_id', 'name_prefix', 'devicetype_id',
-               'controllertype_id', 'emplacement_id', 'room']
-    bom_id = ui.bomNameLineEdit.text()
-    if bom_id is None or bom_id in ('', []):
-        QMessageBox.warning(
-            None,
-            "Warning",
-            "Please fill the bom_id!",
-            QMessageBox.Ok,
-        )
+    bom_name = ui.bomNameLineEdit.text()
+    if bom_name is None or bom_name in ('', []):
+        show_warning_window("Please fill the bom name!")
         return
     data = get_data_from_table_view(ui.bomTableView)
-    if data == []:
-        QMessageBox.warning(
-            None,
-            "Warning",
-            "Please fill the data!",
-            QMessageBox.Ok,
-        )
+
+    check_name_duplicate = f'''
+    SELECT COUNT(*) as name_count
+    FROM bom
+    WHERE bom_name = '{bom_name}';
+    '''
+    is_duplicate = db_handle.execute_query(check_name_duplicate)[0][0]
+    if is_duplicate:
+        show_warning_window("This name is already existed")
         return
-    new_data = []
+
+    if data == []:
+        show_warning_window("Please add more profile!")
+        return
+    profile_idx = []
     for row in data:
-        new_row = []
-        new_row.append(row[0])
-        new_row.append(sql_db.select_data('device_type', [
-                       'devicetype_id'], f"devicetype_name='{row[1]}'")[0][0])
-        new_row.append(sql_db.select_data('controller_type', [
-                       'controllertype_id'], f"controllertype_name='{row[2]}'")[0][0])
-        new_row.append(sql_db.select_data('emplacement_type', [
-                       'emplacement_id'], f"emplacement_name='{row[3]}'")[0][0])
-        new_row.append(row[4])
-        new_data.append(new_row)
-    sql_db.insert_data('bom', {'bom_id': bom_id})
-    processed_data = [[bom_id] + sublist for sublist in new_data]
-    for row in processed_data:
-        sql_db.insert_data('device_profile', dict(zip(headers, row)))
-    populate_table(ui.bomTableView, headers, [])
+        name_prefix = row[0]
+        devicetype_id = db_handle.select_data('device_type', [
+            'device_type_id'], f"device_type_name='{row[1]}'")[0][0]
+        controllertype_id = db_handle.select_data('controller_type', [
+            'controller_type_id'], f"controller_type_name='{row[2]}'")[0][0]
+        emplacement_id = db_handle.select_data('emplacement_type', [
+            'emplacement_id'], f"emplacement_name='{row[3]}'")[0][0]
+        floor_name = row[4]
+        processed_data = [name_prefix, devicetype_id,
+                          controllertype_id, emplacement_id, floor_name]
+        inserted_data = dict(zip(profile_headers, processed_data))
+        db_handle.insert_data('device_profile', inserted_data)
+
+        # Retrieve the last inserted ID
+        query_get_last_id = 'SELECT LAST_INSERT_ID() AS deprofile_id'
+        last_inserted_id = db_handle.execute_query(query_get_last_id)[0][0]
+        profile_idx.append(last_inserted_id)
+
+    get_lowest_bom_id_query = '''
+        SELECT COALESCE(MIN(bom_id) + 1, 0)  AS lowest_unused_number
+        FROM bom
+        WHERE (bom_id + 1) NOT IN (SELECT bom_id FROM bom);
+    '''
+    lowest_bom_id = db_handle.execute_query(get_lowest_bom_id_query)[0][0]
+    bom_header = ['bom_id', 'bom_name', 'deprofile_id']
+    for idx in profile_idx:
+        db_handle.insert_data('bom', dict(
+            zip(bom_header, [lowest_bom_id, bom_name, idx])))
+    populate_table(ui.bomTableView, profile_headers, [])
 
 
 def add_profile_event(ui):
-    headers = ['device_name_prefix', 'device_type',
-               'controller_type', 'location', 'room']
     name_prefix = ui.macPrefixLineEdit.text()
     device_type = ui.deviceTypeComboBox.currentText()
     controller_type = ui.controllerTypeComboBox.currentText()
@@ -147,51 +150,36 @@ def add_profile_event(ui):
         if data == None:
             data = []
         data.append(new_profile)
-        populate_table(ui.bomTableView, headers, data)
+        populate_table(ui.bomTableView, profile_headers, data)
     else:
-        QMessageBox.warning(
-            None,
-            "Warning",
-            "All data must be selected!",
-            QMessageBox.Ok,
-        )
+        show_warning_window("All data must be selected!")
         return
 
 
 def clear_group_event(ui):
-    headers = ['device_name_prefix', 'device_type',
-               'controller_type', 'location', 'room']
-    populate_table(ui.bomTableView, headers, [])
+    populate_table(ui.bomTableView, profile_headers, [])
 
 
 def add_group_event(ui):
-    sql_db = SDE_SQLLite('database/DB_sdeautodeploy.db')
+    bom_name = ui.bomComboBox.currentText()
+    bom_id = db_handle.select_data(
+        'bom', ['bom_id'], f"bom_name='{bom_name}'")[0][0]
     edge_id = ui.edgeComboBox.currentText()
     child_id = ui.childComboBox.currentText()
-    bom_id = ui.bomComboBox.currentText()
     if edge_id == '' or child_id == '' or bom_id == '':
         ui.addStatusLabel.setText('<span style="color: red;">Fail!</span>')
-        QMessageBox.warning(
-            None,
-            "Warning",
-            "Please select all data!",
-            QMessageBox.Ok,
-        )
+        show_warning_window("Please select all data!")
         return
     kitting_device = {
         'edge_id': edge_id,
         'child_id': child_id,
         'datetime': get_date_time()
     }
-    sql_db.insert_data('kitting_device', kitting_device)
-    updated_child = {
-        'bom_id': bom_id
-    }
-    sql_db.update_data('child_device', updated_child, f"child_id='{child_id}'")
+    db_handle.insert_data('kitting_device', kitting_device)
+    db_handle.update_value('child_device', 'bom_id',
+                           bom_id, f"child_id='{child_id}'")
     ui.addStatusLabel.setText('<span style="color: green;">Success!</span>')
 
 
 if __name__ == '__main__':
-    search_val = 'Indoor'
-    sql_db = SDE_SQLLite('database/DB_sdeautodeploy.db')
-    print(sql_db.select_data('bom', ['bom_id']))
+    pass

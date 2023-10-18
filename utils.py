@@ -1,6 +1,8 @@
 from PyQt5.QtGui import QStandardItemModel, QStandardItem
 from PyQt5.QtWidgets import QMessageBox, QHeaderView
-from datetime import datetime
+import time
+import random
+import string
 
 
 def populate_table(table_view, headers, data):
@@ -37,8 +39,7 @@ def get_data_from_table_view(table_view):
 
 
 def get_date_time():
-    now = datetime.now()
-    return now.strftime("%Y-%m-%d,%H:%M:%S")
+    return time.strftime('%Y-%m-%d %H:%M:%S')
 
 
 def send_request():
@@ -51,12 +52,8 @@ def delete_selected_row(table_view):
         selected_indexes = table_view.selectionModel().selectedRows()
 
         if not selected_indexes:
-            QMessageBox.warning(
-                None,
-                "Warning",
-                "No row selected. Please select a row to delete.",
-                QMessageBox.Ok,
-            )
+            show_warning_window(
+                "No row selected. Please select a row to delete.")
             return
 
         # Sort the selected indexes in reverse order to avoid index shifting
@@ -70,10 +67,29 @@ def delete_selected_row(table_view):
         # Clear the selection
         table_view.clearSelection()
     except:
-        QMessageBox.warning(
-            None,
-            "Warning",
-            "No row selected. Please select a row to delete.",
-            QMessageBox.Ok,
-        )
+        show_warning_window("No row selected. Please select a row to delete.")
         return
+
+
+def show_warning_window(message):
+    QMessageBox.warning(
+        None,
+        "Warning",
+        message,
+        QMessageBox.Ok,
+    )
+    return
+
+
+def random_string(char_cnt):
+    # Define the characters and digits to choose from
+    characters = string.ascii_letters + string.digits
+
+    # Generate a random 12-character string
+    random_string = ''.join(random.choice(characters) for _ in range(12))
+
+    return random_string
+
+
+if __name__ == '__main__':
+    print(random_string(12))
